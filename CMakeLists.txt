@@ -24,3 +24,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_executable(ExtendedKF ${sources})
 
 target_link_libraries(ExtendedKF z ssl uv uWS)
+
+if (MINGW)
+    target_link_libraries(ExtendedKF ws2_32)
+endif()
