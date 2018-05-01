@@ -60,16 +60,15 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     float py = x_(1);
     float vx = x_(2);
     float vy = x_(3);
-
-    float rho = sqrt(px * px + py * py);
-    if (rho < 0.00001) {
-        std::cout<<"RHO div by zero"<<std::endl;
-        px += 0.001;
-        py += 0.001;
-        rho = sqrt(px * px + py * py);
+    float c = px * px + py * py;
+    float rho = sqrt(c);
+    if (c < 0.00001) {
+        std::cout << "div by zero" << std::endl;
+        return;
     }
 
     float phi = atan2(py, px);
+
     float rho_dot = (px * vx + py * vy) / rho;
 
     VectorXd z_pred(3);
