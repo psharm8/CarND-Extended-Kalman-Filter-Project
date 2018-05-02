@@ -46,8 +46,6 @@ void KalmanFilter::Update(const VectorXd &z) {
 
     //new estimate
     x_ = x_ + (K * y);
-    long x_size = x_.size();
-    MatrixXd I = MatrixXd::Identity(x_size, x_size);
     P_ = (I - K * H_) * P_;
 }
 
@@ -56,23 +54,23 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     TODO:
       * update the state by using Extended Kalman Filter equations
     */
-    float px = x_(0);
-    float py = x_(1);
-    float vx = x_(2);
-    float vy = x_(3);
-    float c = px * px + py * py;
-    float rho = sqrt(c);
-    if (c < 0.00001) {
-        std::cout << "div by zero" << std::endl;
-        return;
+    double px = x_(0);
+    double py = x_(1);
+    double vx = x_(2);
+    double vy = x_(3);
+    double c = px * px + py * py;
+
+    double rho = sqrt(c);
+    double phi = atan2(py, px);
+    double rho_dot = 0;
+
+    if (fabs(rho) >= 0.0001) {
+        rho_dot = (px * vx + py * vy) / rho;
     }
-
-    float phi = atan2(py, px);
-
-    float rho_dot = (px * vx + py * vy) / rho;
 
     VectorXd z_pred(3);
     z_pred << rho, phi, rho_dot;
+
     VectorXd y = z - z_pred;
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;
@@ -80,8 +78,14 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     MatrixXd PHt = P_ * Ht;
     MatrixXd K = PHt * Si;
 
+    while (y(1) > M_PI || y(1) < -M_PI) {
+        if (y(1) > M_PI) {
+            y(1) -= M_PI;
+        } else {
+            y(1) += M_PI;
+        }
+    }
+
     x_ = x_ + (K * y);
-    long x_size = x_.size();
-    MatrixXd I = MatrixXd::Identity(x_size, x_size);
     P_ = (I - K * H_) * P_;
 }
